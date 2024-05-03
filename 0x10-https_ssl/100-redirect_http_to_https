@@ -47,5 +47,5 @@ frontend sparkafrica-frontend-https
 
 backend sparkafrica-backend
         balance roundrobin
-        server 151666-web-01 100.25.190.21:80 check
-        server 151666-web-02 54.160.77.90:80 check
+        server 151666-web-01 54.237.95.5:80 check
+        server 151666-web-02 52.3.245.143:80 check
