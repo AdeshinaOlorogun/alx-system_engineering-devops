@@ -40,8 +40,8 @@ frontend sparkafrica-tech-frontend
 
 backend sparkafrica-tech-backend
     balance roundrobin
-    server 151666-web-01 54.237.95.5:80 check
-    server 151666-web-02 52.3.245.143:80 check
+    server 530761-web-01 18.207.140.205:80 check
+    server 530761-web-02 54.157.140.220:80 check
 "
 
 # shellcheck disable=SC2154
