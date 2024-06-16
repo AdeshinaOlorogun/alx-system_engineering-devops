@@ -1,23 +1,26 @@
-#!/usr/bin/env python3
 import requests
 
 def number_of_subscribers(subreddit):
     """Return the number of subscribers for a given subreddit."""
     url = f"https://www.reddit.com/r/{subreddit}/about.json"
-    headers = {'User-Agent': 'custom-user-agent'}
+    headers = {'User-Agent': 'Custom-User-Agent'}
     
     try:
         response = requests.get(url, headers=headers, allow_redirects=False)
         if response.status_code == 200:
             data = response.json()
-            return data['data']['subscribers']
-        else:
+            if 'data' in data and 'subscribers' in data['data']:
+                return data['data']['subscribers']
+            else:
+                return 0
+        elif response.status_code == 404:
+            print(f"Subreddit '{subreddit}' not found.")
             return 0
-    except Exception as e:
+        else:
+            print(f"Error: Status code {response.status_code}")
+            return 0
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
         return 0
-
-# Example usage
-if __name__ == "__main__":
-    subreddit = "python"
-    print(f"The number of subscribers in r/{subreddit} is {number_of_subscribers(subreddit)}")
 
