@@ -1,50 +1,50 @@
-#!/usr/bin/python3
-""" Module for a function that queries the Reddit API recursively."""
-
-
 import requests
 
-
-def count_words(subreddit, word_list, after='', word_dict={}):
-    """ A function that queries the Reddit API parses the title of
-    all hot articles, and prints a sorted count of given keywords
-    (case-insensitive, delimited by spaces.
-    Javascript should count as javascript, but java should not).
-    If no posts match or the subreddit is invalid, it prints nothing.
-    """
-
-    if not word_dict:
-        for word in word_list:
-            if word.lower() not in word_dict:
-                word_dict[word.lower()] = 0
-
-    if after is None:
-        wordict = sorted(word_dict.items(), key=lambda x: (-x[1], x[0]))
-        for word in wordict:
-            if word[1]:
-                print('{}: {}'.format(word[0], word[1]))
-        return None
-
-    url = 'https://www.reddit.com/r/{}/hot/.json'.format(subreddit)
-    header = {'user-agent': 'redquery'}
-    parameters = {'limit': 100, 'after': after}
-    response = requests.get(url, headers=header, params=parameters,
-                            allow_redirects=False)
-
-    if response.status_code != 200:
-        return None
-
+def count_words(subreddit, word_list, after=None, counts=None):
+    """Recursively counts occurrences of keywords in hot article titles from a subreddit."""
+    if counts is None:
+        counts = {}
+    
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
+    headers = {'User-Agent': 'custom-user-agent'}
+    params = {'after': after, 'limit': 100}
+    
     try:
-        hot = response.json()['data']['children']
-        aft = response.json()['data']['after']
-        for post in hot:
-            title = post['data']['title']
-            lower = [word.lower() for word in title.split(' ')]
+        response = requests.get(url, headers=headers, params=params, allow_redirects=False)
+        if response.status_code != 200:
+            return
+        
+        data = response.json().get('data')
+        if not data:
+            return
+        
+        posts = data.get('children')
+        if not posts:
+            return
+        
+        for post in posts:
+            title = post['data']['title'].lower()
+            for word in word_list:
+                keyword = word.lower()
+                if keyword in counts:
+                    counts[keyword] += title.count(keyword)
+                else:
+                    counts[keyword] = title.count(keyword)
+        
+        after = data.get('after')
+        if after is None:
+            sorted_counts = sorted(counts.items(), key=lambda x: (-x[1], x[0]))
+            for keyword, count in sorted_counts:
+                print(f"{keyword}: {count}")
+            return
+        else:
+            return count_words(subreddit, word_list, after, counts)
+    
+    except Exception as e:
+        return
 
-            for word in word_dict.keys():
-                word_dict[word] += lower.count(word)
-
-    except Exception:
-        return None
-
-    count_words(subreddit, word_list, aft, word_dict)
+# Example usage
+if __name__ == "__main__":
+    subreddit = "python"
+    word_list = ["python", "java", "javascript", "ruby"]
+    count_words(subreddit, word_list)
